@@ -14,23 +14,18 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hashvault.app.HashVaultApp
-import com.hashvault.app.data.repository.WalletRepository
 import com.hashvault.app.ui.components.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WalletScreen(
-    onAddressChanged: (String) -> Unit,
-    viewModel: WalletViewModel = viewModel(
-        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                val app = androidx.compose.ui.platform.LocalContext.current.applicationContext as HashVaultApp
-                return WalletViewModel(WalletRepository(app.prefs)) as T
-            }
-        }
-    )
+    onAddressChanged: (String) -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val app = context.applicationContext as HashVaultApp
+    val viewModel: WalletViewModel = viewModel(
+        factory = WalletViewModelFactory(app)
+    )
     val state by viewModel.state.collectAsStateWithLifecycle()
     var showAddressInput by remember { mutableStateOf(false) }
     var addressInput by remember { mutableStateOf("") }

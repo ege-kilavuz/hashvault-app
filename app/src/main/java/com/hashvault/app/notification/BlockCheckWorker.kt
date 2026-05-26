@@ -14,31 +14,33 @@ class BlockCheckWorker(
     workerParams: WorkerParameters
 ) : CoroutineWorker(context, workerParams) {
 
-    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        try {
-            val prefs = PreferencesManager(applicationContext)
-            val address = prefs.getWalletAddress() ?: return@withContext Result.success()
-            if (!prefs.getNotificationsEnabled()) return@Result.success()
+    override suspend fun doWork(): Result {
+        return withContext(Dispatchers.IO) {
+            try {
+                val prefs = PreferencesManager(applicationContext)
+                val address = prefs.getWalletAddress() ?: return@withContext Result.success()
+                if (!prefs.getNotificationsEnabled()) return@withContext Result.success()
 
-            val lastKnownIndex = prefs.getLastBlockIndex()
-            val blocks = ApiClient.api.getWalletBlocks(address, page = 0, limit = 1)
+                val lastKnownIndex = prefs.getLastBlockIndex()
+                val blocks = ApiClient.api.getWalletBlocks(address, page = 0, limit = 1)
 
-            val latestIndex = blocks.firstOrNull()?.index ?: return@withContext Result.success()
+                val latestIndex = blocks.firstOrNull()?.index ?: return@withContext Result.success()
 
-            if (lastKnownIndex > 0 && latestIndex > lastKnownIndex) {
-                val block = blocks.first()
-                val rewardValue = block.value / 1_000_000_000_000.0
-                NotificationHelper.showBlockNotification(
-                    applicationContext,
-                    block.height,
-                    "%.6f".format(rewardValue)
-                )
+                if (lastKnownIndex > 0 && latestIndex > lastKnownIndex) {
+                    val block = blocks.first()
+                    val rewardValue = block.value / 1_000_000_000_000.0
+                    NotificationHelper.showBlockNotification(
+                        applicationContext,
+                        block.height,
+                        "%.6f".format(rewardValue)
+                    )
+                }
+
+                prefs.saveLastBlockIndex(latestIndex)
+                Result.success()
+            } catch (e: Exception) {
+                Result.retry()
             }
-
-            prefs.saveLastBlockIndex(latestIndex)
-            Result.success()
-        } catch (e: Exception) {
-            Result.retry()
         }
     }
 

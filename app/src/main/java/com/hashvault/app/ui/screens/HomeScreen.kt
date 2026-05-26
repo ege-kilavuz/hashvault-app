@@ -20,19 +20,14 @@ import com.hashvault.app.ui.navigation.Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    navController: NavController,
-    viewModel: HomeViewModel = viewModel(
-        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                val app = androidx.compose.ui.platform.LocalContext.current.applicationContext as HashVaultApp
-                return HomeViewModel(walletRepo = com.hashvault.app.data.repository.WalletRepository(app.prefs)) as T
-            }
-        }
-    )
+    navController: NavController
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = androidx.compose.ui.platform.LocalContext.current
+    val app = context.applicationContext as HashVaultApp
+    val viewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(app)
+    )
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {

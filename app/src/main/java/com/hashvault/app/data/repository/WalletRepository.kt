@@ -11,8 +11,8 @@ class WalletRepository(private val prefs: PreferencesManager) {
         api.getWalletStats(address)
     }
 
-    suspend fun getWalletBlocks(address: String, poolType: String = "collective", page: Int = 0): Result<List<Block>> = runCatching {
-        api.getWalletBlocks(address, poolType, page)
+    suspend fun getWalletBlocks(address: String, poolType: String = "collective", page: Int = 0, limit: Int = 15): Result<List<Block>> = runCatching {
+        api.getWalletBlocks(address, poolType, page, limit)
     }
 
     suspend fun getWalletPayments(address: String, page: Int = 0): Result<List<Payment>> = runCatching {

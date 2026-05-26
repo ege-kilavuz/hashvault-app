@@ -1,13 +1,17 @@
 package com.hashvault.app.ui.screens
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.hashvault.app.HashVaultApp
 import com.hashvault.app.data.local.PreferencesManager
 import com.hashvault.app.data.model.*
 import com.hashvault.app.data.repository.PoolRepository
 import com.hashvault.app.data.repository.WalletRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+
+// ===== Home ViewModel =====
 
 class HomeViewModel(
     private val poolRepo: PoolRepository = PoolRepository(),
@@ -48,7 +52,7 @@ class HomeViewModel(
                     _uiState.update { it.copy(walletStats = walletStats) }
                 }
 
-                walletRepo.getWalletBlocks(address, limit = 5).onSuccess { blocks ->
+                walletRepo.getWalletBlocks(address, page = 0, limit = 5).onSuccess { blocks ->
                     _uiState.update { it.copy(latestBlocks = blocks) }
                 }
 
@@ -63,6 +67,15 @@ class HomeViewModel(
 
     fun refresh() = loadAll()
 }
+
+class HomeViewModelFactory(private val app: HashVaultApp) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return HomeViewModel(walletRepo = WalletRepository(app.prefs)) as T
+    }
+}
+
+// ===== Wallet ViewModel =====
 
 class WalletViewModel(
     private val walletRepo: WalletRepository
@@ -127,5 +140,12 @@ class WalletViewModel(
 
             _state.update { it.copy(isLoading = false) }
         }
+    }
+}
+
+class WalletViewModelFactory(private val app: HashVaultApp) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return WalletViewModel(WalletRepository(app.prefs)) as T
     }
 }
