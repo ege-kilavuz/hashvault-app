@@ -79,9 +79,23 @@ data class WalletCollective(
 
 data class Revenue(
     @SerializedName("confirmedBalance") val confirmedBalance: Long,
-    @SerializedName("pendingBalance") val pendingBalance: Long,
     @SerializedName("totalPaid") val totalPaid: Long,
-    @SerializedName("lastShare") val lastShare: Long
+    @SerializedName("dailyPaid") val dailyPaid: Long?,
+    @SerializedName("dailyCredited") val dailyCredited: Long?,
+    @SerializedName("payoutThreshold") val payoutThreshold: Long?,
+    @SerializedName("totalRewardsCredited") val totalRewardsCredited: Long?,
+    @SerializedName("totalPaymentsSent") val totalPaymentsSent: Long?,
+    @SerializedName("unconfirmedBalance") val unconfirmedBalance: UnconfirmedBalance?
+)
+
+data class UnconfirmedBalance(
+    val collective: UnconfirmedDetail?,
+    val solo: UnconfirmedDetail?
+)
+
+data class UnconfirmedDetail(
+    val total: Long,
+    val detail: Map<String, Long>?
 )
 
 data class WalletPayments(
