@@ -25,13 +25,9 @@ import com.hashvault.app.ui.theme.HashVaultTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        try {
-            installSplashScreen()
-        } catch (_: Exception) { }
+        try { installSplashScreen() } catch (_: Exception) { }
         super.onCreate(savedInstanceState)
-        try {
-            enableEdgeToEdge()
-        } catch (_: Exception) { }
+        try { enableEdgeToEdge() } catch (_: Exception) { }
 
         setContent {
             HashVaultTheme {
@@ -41,10 +37,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private data class BottomNavItem(
-    val screen: Screen,
-    val icon: ImageVector
-)
+private data class BottomNavItem(val screen: Screen, val icon: ImageVector)
 
 @Composable
 fun HashVaultMain() {
@@ -54,9 +47,9 @@ fun HashVaultMain() {
 
     val items = listOf(
         BottomNavItem(Screen.Home, Icons.Filled.Home),
-        BottomNavItem(Screen.Wallet, Icons.Filled.Face),
-        BottomNavItem(Screen.Blocks, Icons.Filled.List),
-        BottomNavItem(Screen.Pool, Icons.Filled.Star),
+        BottomNavItem(Screen.Wallet, Icons.Filled.AccountBalanceWallet),
+        BottomNavItem(Screen.Blocks, Icons.Filled.Inventory2),
+        BottomNavItem(Screen.Pool, Icons.Filled.BarChart),
         BottomNavItem(Screen.Settings, Icons.Filled.Settings)
     )
 
@@ -70,12 +63,7 @@ fun HashVaultMain() {
 
                     NavigationBarItem(
                         icon = { Icon(item.icon, contentDescription = item.screen.label) },
-                        label = {
-                            Text(
-                                item.screen.label,
-                                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-                            )
-                        },
+                        label = { Text(item.screen.label, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal) },
                         selected = selected,
                         onClick = {
                             navController.navigate(item.screen.route) {

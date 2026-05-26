@@ -31,9 +31,5 @@
             android:exported="false"
             tools:node="merge">
         </provider>
-
-        <receiver
-            android:name=".notification.BlockAlarmReceiver"
-            android:exported="false" />
     </application>
 </manifest>
