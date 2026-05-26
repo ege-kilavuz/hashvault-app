@@ -4,9 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -23,9 +21,17 @@ import com.hashvault.app.ui.theme.HashVaultTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        try {
+            installSplashScreen()
+        } catch (_: Exception) {
+            // SplashScreen API might not be available
+        }
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        try {
+            enableEdgeToEdge()
+        } catch (_: Exception) {
+            // Edge-to-edge might fail on some devices
+        }
 
         setContent {
             HashVaultTheme {
@@ -48,11 +54,11 @@ fun HashVaultMain() {
     val currentDestination = navBackStackEntry?.destination
 
     val items = listOf(
-        BottomNavItem(Screen.Home, Icons.Filled.Dashboard),
-        BottomNavItem(Screen.Wallet, Icons.Filled.AccountBalanceWallet),
-        BottomNavItem(Screen.Blocks, Icons.Filled.Inventory2),
-        BottomNavItem(Screen.Pool, Icons.Filled.BarChart),
-        BottomNavItem(Screen.Settings, Icons.Filled.Settings)
+        BottomNavItem(Screen.Home, androidx.compose.material.icons.Icons.Filled.Dashboard),
+        BottomNavItem(Screen.Wallet, androidx.compose.material.icons.Icons.Filled.AccountBalanceWallet),
+        BottomNavItem(Screen.Blocks, androidx.compose.material.icons.Icons.Filled.Inventory2),
+        BottomNavItem(Screen.Pool, androidx.compose.material.icons.Icons.Filled.BarChart),
+        BottomNavItem(Screen.Settings, androidx.compose.material.icons.Icons.Filled.Settings)
     )
 
     Scaffold(
@@ -83,7 +89,7 @@ fun HashVaultMain() {
     ) { innerPadding ->
         AppNavGraph(
             navController = navController,
-            onWalletCheck = { /* data refreshed */ },
+            onWalletCheck = { },
             modifier = Modifier.padding(innerPadding)
         )
     }

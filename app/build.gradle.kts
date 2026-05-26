@@ -70,9 +70,6 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 
-    // AppCompat
-    implementation("androidx.appcompat:appcompat:1.7.0")
-
     // Splash Screen
     implementation("androidx.core:core-splashscreen:1.0.1")
 }

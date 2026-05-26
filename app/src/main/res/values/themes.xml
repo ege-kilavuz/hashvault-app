@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.HashVault" parent="Theme.AppCompat.DayNight.NoActionBar" />
+    <style name="Theme.HashVault" parent="android:Theme.Material.Light.NoActionBar" />
     <style name="Theme.HashVault.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">#FF1A1A2E</item>
         <item name="postSplashScreenTheme">@style/Theme.HashVault</item>
