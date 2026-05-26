@@ -29,6 +29,12 @@ fun HomeScreen(
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    // Wallet address değişikliklerini izle
+    val walletAddr by app.prefs.walletAddressFlow.collectAsStateWithLifecycle(initialValue = null)
+    LaunchedEffect(walletAddr) {
+        viewModel.refresh()
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(

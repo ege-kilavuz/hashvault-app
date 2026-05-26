@@ -87,6 +87,7 @@ class WalletViewModel(
         val blocks: List<Block> = emptyList(),
         val payments: List<Payment> = emptyList(),
         val rewards: List<Reward> = emptyList(),
+        val shares: List<com.hashvault.app.data.model.ShareEntry> = emptyList(),
         val isLoading: Boolean = false,
         val error: String? = null
     )
@@ -135,6 +136,13 @@ class WalletViewModel(
             }
 
             walletRepo.getWalletRewards(address).onSuccess { rewards ->
+
+            runCatching {
+                com.hashvault.app.data.api.ApiClient.api.getWalletTopShares(address)
+            }.onSuccess { resp ->
+                val allShares = resp.data.flatMap { it.value }
+                _state.update { it.copy(shares = allShares) }
+            }
                 _state.update { it.copy(rewards = rewards) }
             }
 

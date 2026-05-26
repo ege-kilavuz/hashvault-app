@@ -209,6 +209,30 @@ fun WalletScreen(
             // Rewards
             if (state.rewards.isNotEmpty()) {
                 item { SectionHeader("Rewards") }
+            // Shares
+            if (state.shares.isNotEmpty()) {
+                item { SectionHeader("Top Shares") }
+                items(state.shares) { share ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(share.blockHeight?.let { "#$it" } ?: "-", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                                Text("Diff: ${share.shareDifficulty}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text("%.1f%%".format(share.targetRatio ?: 0.0), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+                    }
+                }
+            }
                 items(state.rewards.take(5)) { reward ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),

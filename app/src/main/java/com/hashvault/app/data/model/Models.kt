@@ -192,3 +192,15 @@ data class Reward(
     val block: Long?,
     val blockHash: String?
 )
+
+// ===== Share =====
+data class ShareResponse(
+    val data: Map<String, List<ShareEntry>>
+)
+
+data class ShareEntry(
+    @SerializedName("shareDifficulty") val shareDifficulty: Long,
+    @SerializedName("blockDifficulty") val blockDifficulty: Long?,
+    @SerializedName("targetDifficulty") val targetDifficulty: Long?,
+    @SerializedName("blockHeight") val blockHeight: Long?
+)

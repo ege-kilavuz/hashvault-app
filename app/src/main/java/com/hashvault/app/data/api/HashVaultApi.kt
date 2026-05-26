@@ -74,4 +74,9 @@ interface HashVaultApi {
         @Query("page") page: Int = 0,
         @Query("limit") limit: Int = 15
     ): List<Reward>
+
+    @GET("wallet/{address}/topshares")
+    suspend fun getWalletTopShares(
+        @Path("address") address: String
+    ): ShareResponse
 }
