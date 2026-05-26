@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.hashvault.app
 
 import android.os.Bundle
@@ -5,6 +7,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -23,15 +27,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         try {
             installSplashScreen()
-        } catch (_: Exception) {
-            // SplashScreen API might not be available
-        }
+        } catch (_: Exception) { }
         super.onCreate(savedInstanceState)
         try {
             enableEdgeToEdge()
-        } catch (_: Exception) {
-            // Edge-to-edge might fail on some devices
-        }
+        } catch (_: Exception) { }
 
         setContent {
             HashVaultTheme {
@@ -41,12 +41,11 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-data class BottomNavItem(
+private data class BottomNavItem(
     val screen: Screen,
     val icon: ImageVector
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HashVaultMain() {
     val navController = rememberNavController()
@@ -54,11 +53,11 @@ fun HashVaultMain() {
     val currentDestination = navBackStackEntry?.destination
 
     val items = listOf(
-        BottomNavItem(Screen.Home, androidx.compose.material.icons.Icons.Filled.Dashboard),
-        BottomNavItem(Screen.Wallet, androidx.compose.material.icons.Icons.Filled.AccountBalanceWallet),
-        BottomNavItem(Screen.Blocks, androidx.compose.material.icons.Icons.Filled.Inventory2),
-        BottomNavItem(Screen.Pool, androidx.compose.material.icons.Icons.Filled.BarChart),
-        BottomNavItem(Screen.Settings, androidx.compose.material.icons.Icons.Filled.Settings)
+        BottomNavItem(Screen.Home, Icons.Filled.Home),
+        BottomNavItem(Screen.Wallet, Icons.Filled.AccountBalanceWallet),
+        BottomNavItem(Screen.Blocks, Icons.Filled.Inventory),
+        BottomNavItem(Screen.Pool, Icons.Filled.BarChart),
+        BottomNavItem(Screen.Settings, Icons.Filled.Settings)
     )
 
     Scaffold(
@@ -71,7 +70,12 @@ fun HashVaultMain() {
 
                     NavigationBarItem(
                         icon = { Icon(item.icon, contentDescription = item.screen.label) },
-                        label = { Text(item.screen.label, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal) },
+                        label = {
+                            Text(
+                                item.screen.label,
+                                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                            )
+                        },
                         selected = selected,
                         onClick = {
                             navController.navigate(item.screen.route) {
