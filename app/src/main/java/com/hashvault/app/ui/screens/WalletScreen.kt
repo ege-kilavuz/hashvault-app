@@ -109,7 +109,7 @@ fun WalletScreen(
             state.stats?.collective?.let { col ->
                 item {
                     val confirmed = (col.revenue?.confirmedBalance ?: 0L) / 1_000_000_000_000.0
-                    val pending = (col.revenue?.pendingBalance ?: 0L) / 1_000_000_000_000.0
+                    val pending = (col.revenue?.unconfirmedBalance?.collective?.total ?: 0L) / 1_000_000_000_000.0
                     val totalPaid = (col.revenue?.totalPaid ?: 0L) / 1_000_000_000_000.0
 
                     BalanceCard(balanceXmr = confirmed, balanceUsd = null)

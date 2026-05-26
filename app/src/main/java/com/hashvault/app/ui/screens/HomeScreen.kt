@@ -85,7 +85,7 @@ fun HomeScreen(
             uiState.walletStats?.collective?.let { collective ->
                 item {
                     val balanceXmr = (collective.revenue?.confirmedBalance ?: 0L) / 1_000_000_000_000.0
-                    val pendingXmr = (collective.revenue?.pendingBalance ?: 0L) / 1_000_000_000_000.0
+                    val pendingXmr = (collective.revenue?.unconfirmedBalance?.collective?.total ?: 0L) / 1_000_000_000_000.0
                     BalanceCard(balanceXmr = balanceXmr, balanceUsd = null)
                     if (pendingXmr > 0) {
                         Spacer(modifier = Modifier.height(4.dp))
