@@ -203,4 +203,9 @@ data class ShareEntry(
     @SerializedName("blockDifficulty") val blockDifficulty: Long?,
     @SerializedName("targetDifficulty") val targetDifficulty: Long?,
     @SerializedName("blockHeight") val blockHeight: Long?
-)
+) {
+    val targetRatio: Double
+        get() = if (targetDifficulty != null && targetDifficulty > 0) 100.0 * shareDifficulty / targetDifficulty else 0.0
+    val blockRatio: Double
+        get() = if (blockDifficulty != null && blockDifficulty > 0) 100.0 * shareDifficulty / blockDifficulty else 0.0
+}
