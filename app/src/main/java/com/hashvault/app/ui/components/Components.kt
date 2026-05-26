@@ -145,5 +145,11 @@ fun FormatHashrate(hashRate: Long): String {
 
 @Composable
 fun FormatXmr(amount: Long): String {
-    return "%.8f".format(amount / 1_000_000_000_000.0)
+    val xmr = amount / 1_000_000_000_000.0
+    return when {
+        xmr >= 1.0 -> "%.6f".format(xmr)
+        xmr >= 0.000001 -> "%.8f".format(xmr)
+        xmr > 0 -> "%.9f".format(xmr)
+        else -> "0.000000"
+    }
 }
