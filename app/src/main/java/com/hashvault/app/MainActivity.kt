@@ -54,9 +54,9 @@ fun HashVaultMain() {
 
     val items = listOf(
         BottomNavItem(Screen.Home, Icons.Filled.Home),
-        BottomNavItem(Screen.Wallet, Icons.Filled.AccountBalanceWallet),
-        BottomNavItem(Screen.Blocks, Icons.Filled.Inventory),
-        BottomNavItem(Screen.Pool, Icons.Filled.BarChart),
+        BottomNavItem(Screen.Wallet, Icons.Filled.Face),
+        BottomNavItem(Screen.Blocks, Icons.Filled.List),
+        BottomNavItem(Screen.Pool, Icons.Filled.Star),
         BottomNavItem(Screen.Settings, Icons.Filled.Settings)
     )
 
