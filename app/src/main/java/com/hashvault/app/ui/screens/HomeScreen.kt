@@ -1,4 +1,8 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.hashvault.app.ui.screens
+
+import com.hashvault.app.LocalStrings
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -65,13 +69,13 @@ fun HomeScreen(
                             modifier = Modifier.padding(20.dp)
                         ) {
                             Text(
-                                text = "No Wallet Configured",
+                                text = LocalStrings.current.noWalletTitle,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "Enter your Monero wallet address in Settings to track your mining stats.",
+                                text = LocalStrings.current.noWalletDesc,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -87,18 +91,69 @@ fun HomeScreen(
                 }
             }
 
-            // Balance
-            uiState.walletStats?.collective?.let { collective ->
+            // Balance + Daily Earnings
+            uiState.walletStats?.let { ws ->
                 item {
-                    val balanceXmr = (collective.revenue?.confirmedBalance ?: 0L) / 1_000_000_000_000.0
-                    val pendingXmr = (collective.revenue?.unconfirmedBalance?.collective?.total ?: 0L) / 1_000_000_000_000.0
+                    val revenue = ws.revenue
+                    val collective = ws.collective
+                    val balanceXmr = (revenue?.confirmedBalance ?: 0L) / 1_000_000_000_000.0
+                    val pendingXmr = (revenue?.unconfirmedBalance?.collective?.total ?: 0L) / 1_000_000_000_000.0
+                    val dailyCredited = (revenue?.dailyCredited ?: 0L) / 1_000_000_000_000.0
+                    val dailyPaid = (revenue?.dailyPaid ?: 0L) / 1_000_000_000_000.0
+                    val poolBlockVal = uiState.poolStats?.network?.value ?: 0L
+                    val poolBlocksPerDay = 30L // Monero ~30 blocks/day
+                    val poolHr = uiState.poolStats?.pool?.collective?.hashRate ?: 1L
+                    val walletHr = collective?.hashRate ?: 0L
+                    val estDailyXmr = if (poolHr > 0 && poolBlockVal > 0 && walletHr > 0) {
+                        (walletHr.toDouble() / poolHr) * poolBlockVal * poolBlocksPerDay / 1_000_000_000_000.0
+                    } else 0.0
+
                     BalanceCard(balanceXmr = balanceXmr, balanceUsd = null)
+
                     if (pendingXmr > 0) {
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "Pending: %.6f XMR".format(pendingXmr),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        StatCard(
+                            title = "Today Credited",
+                            value = if (dailyCredited > 0) "%.6f XMR".format(dailyCredited) else "—",
+                            modifier = Modifier.weight(1f)
+                        )
+                        StatCard(
+                            title = "Est. Daily",
+                            value = if (estDailyXmr > 0) "%.6f XMR".format(estDailyXmr) else "—",
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    // My Shares + Last Block
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        val validShares = collective?.validShares ?: 0
+                        val invalidShares = collective?.invalidShares ?: 0
+                        val staleShares = collective?.staleShares ?: 0
+                        StatCard(
+                            title = "My Shares",
+                            value = "${FormatCompact(validShares)} / ${FormatCompact(invalidShares)} / ${FormatCompact(staleShares)}",
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        val lastBlock = uiState.poolStats?.pool?.collective?.lastFoundBlock
+                        val lastBlockTime = lastBlock?.ts?.let { ts ->
+                            java.text.SimpleDateFormat("dd MMM HH:mm", java.util.Locale.getDefault()).format(java.util.Date(ts))
+                        } ?: "—"
+                        StatCard(
+                            title = "Last Block",
+                            value = "#${lastBlock?.height ?: "—"} at $lastBlockTime",
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
@@ -114,13 +169,13 @@ fun HomeScreen(
                     val poolHashrate = uiState.poolStats?.pool?.collective?.hashRate ?: 0L
 
                     StatCard(
-                        title = "Your Hashrate",
+                        title = LocalStrings.current.yourHashrate,
                         value = FormatHashrate(walletHashrate),
                         modifier = Modifier.weight(1f),
                         isLoading = uiState.isLoading
                     )
                     StatCard(
-                        title = "Pool Hashrate",
+                        title = LocalStrings.current.poolHashrate,
                         value = FormatHashrate(poolHashrate),
                         modifier = Modifier.weight(1f),
                         isLoading = uiState.isLoading
@@ -141,7 +196,7 @@ fun HomeScreen(
                         isLoading = uiState.isLoading
                     )
                     StatCard(
-                        title = "Total Paid",
+                        title = LocalStrings.current.totalPaid,
                         value = "%d XMR".format((uiState.poolStats?.pool?.payments?.totalMinersPaid ?: 0)),
                         modifier = Modifier.weight(1f),
                         isLoading = uiState.isLoading
@@ -157,13 +212,13 @@ fun HomeScreen(
                 ) {
                     val net = uiState.poolStats?.network
                     StatCard(
-                        title = "Network Height",
+                        title = LocalStrings.current.networkHeight,
                         value = (net?.height ?: 0).toString(),
                         modifier = Modifier.weight(1f),
                         isLoading = uiState.isLoading
                     )
                     StatCard(
-                        title = "Network Diff",
+                        title = LocalStrings.current.networkDiff,
                         value = "%.0f".format((net?.difficulty ?: 0).toDouble()),
                         modifier = Modifier.weight(1f),
                         isLoading = uiState.isLoading
@@ -173,7 +228,7 @@ fun HomeScreen(
 
             // Last Blocks
             if (uiState.latestBlocks.isNotEmpty()) {
-                item { SectionHeader("Latest Blocks") }
+                item { SectionHeader(LocalStrings.current.latestBlocks) }
                 items(uiState.latestBlocks) { block ->
                     BlockItem(block = block)
                 }
@@ -181,7 +236,7 @@ fun HomeScreen(
 
             // Last Payments
             if (uiState.latestPayments.isNotEmpty()) {
-                item { SectionHeader("Latest Payments") }
+                item { SectionHeader(LocalStrings.current.latestPayments) }
                 items(uiState.latestPayments) { payment ->
                     PaymentItem(payment = payment)
                 }
@@ -213,7 +268,7 @@ private fun BlockItem(block: Block) {
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = "${block.poolType.uppercase()} · %.1f%% effort".format(block.effort),
+                    text = "${(block.poolType ?: "").uppercase()} · %.1f%% effort".format(block.effort),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

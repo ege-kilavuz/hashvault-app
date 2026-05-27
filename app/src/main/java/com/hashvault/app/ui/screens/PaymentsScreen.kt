@@ -1,4 +1,8 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.hashvault.app.ui.screens
+
+import com.hashvault.app.LocalStrings
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -35,7 +39,7 @@ fun PaymentsScreen() {
     LaunchedEffect(Unit) { load() }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Payments") }) }
+        topBar = { TopAppBar(title = { Text(LocalStrings.current.navPayments) }) }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (isLoading) {
@@ -79,7 +83,7 @@ private fun PaymentCard(payment: Payment) {
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = "${payment.payees} payees · Fee: ${FormatXmr(payment.fee)}",
+                    text = "${payment.payees ?: 0} payees · Fee: ${FormatXmr(payment.fee ?: 0L)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

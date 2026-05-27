@@ -11,7 +11,9 @@ import com.hashvault.app.data.repository.WalletRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-// ===== Home ViewModel =====
+// ====================================================================
+// HOME VIEWMODEL
+// ====================================================================
 
 class HomeViewModel(
     private val poolRepo: PoolRepository = PoolRepository(),
@@ -75,7 +77,9 @@ class HomeViewModelFactory(private val app: HashVaultApp) : ViewModelProvider.Fa
     }
 }
 
-// ===== Wallet ViewModel =====
+// ====================================================================
+// WALLET VIEWMODEL
+// ====================================================================
 
 class WalletViewModel(
     private val walletRepo: WalletRepository
@@ -87,7 +91,7 @@ class WalletViewModel(
         val blocks: List<Block> = emptyList(),
         val payments: List<Payment> = emptyList(),
         val rewards: List<Reward> = emptyList(),
-        val shares: List<com.hashvault.app.data.model.ShareEntry> = emptyList(),
+        val shares: List<ShareEntry> = emptyList(),
         val isLoading: Boolean = false,
         val error: String? = null
     )
@@ -121,6 +125,7 @@ class WalletViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
 
+            // Load all wallet data in parallel where possible
             walletRepo.getWalletStats(address).onSuccess { stats ->
                 _state.update { it.copy(stats = stats) }
             }.onFailure { e ->
@@ -136,18 +141,24 @@ class WalletViewModel(
             }
 
             walletRepo.getWalletRewards(address).onSuccess { rewards ->
-
-            runCatching {
-                com.hashvault.app.data.api.ApiClient.api.getWalletTopShares(address)
-            }.onSuccess { resp ->
-                val allShares = resp.data.flatMap { it.value }
-                _state.update { it.copy(shares = allShares) }
-            }
                 _state.update { it.copy(rewards = rewards) }
+            }
+
+            // Shares loaded separately
+            walletRepo.getWalletTopShares(address).onSuccess { resp ->
+                val allShares = (resp.collectiveRound.orEmpty() + resp.soloRound.orEmpty() + resp.overall.orEmpty())
+                    .distinctBy { it.index }
+                _state.update { it.copy(shares = allShares) }
             }
 
             _state.update { it.copy(isLoading = false) }
         }
+    }
+
+    /** Refresh all wallet data for the current address */
+    fun refresh() {
+        val addr = _state.value.address
+        if (addr.isNotBlank()) loadWalletData(addr)
     }
 }
 

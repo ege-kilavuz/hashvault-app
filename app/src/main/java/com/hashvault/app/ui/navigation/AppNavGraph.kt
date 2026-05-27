@@ -5,12 +5,14 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.hashvault.app.AppLanguage
 import com.hashvault.app.ui.screens.*
 
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
     onWalletCheck: (String) -> Unit,
+    onLanguageChange: (AppLanguage) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -31,10 +33,19 @@ fun AppNavGraph(
             PaymentsScreen()
         }
         composable(Screen.Pool.route) {
-            PoolScreen()
+            PoolScreen(navController = navController)
+        }
+        composable(Screen.TopMiners.route) {
+            TopMinersScreen()
+        }
+        composable(Screen.Charts.route) {
+            ChartsScreen()
+        }
+        composable(Screen.Guide.route) {
+            GuideScreen()
         }
         composable(Screen.Settings.route) {
-            SettingsScreen()
+            SettingsScreen(navController = navController, onLanguageChange = onLanguageChange)
         }
     }
 }

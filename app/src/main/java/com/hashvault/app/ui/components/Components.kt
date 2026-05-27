@@ -7,7 +7,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+
+// ====================================================================
+// COMPOSABLES
+// ====================================================================
 
 @Composable
 fun StatCard(
@@ -133,6 +136,10 @@ fun TimestampText(timestampMs: Long, modifier: Modifier = Modifier) {
     )
 }
 
+// ====================================================================
+// FORMATTER UTILITIES
+// ====================================================================
+
 @Composable
 fun FormatHashrate(hashRate: Long): String {
     return when {
@@ -151,5 +158,17 @@ fun FormatXmr(amount: Long): String {
         xmr >= 0.000001 -> "%.8f".format(xmr)
         xmr > 0 -> "%.9f".format(xmr)
         else -> "0.000000"
+    }
+}
+
+/** Compact number formatting: 1500 → 1.5K, 1500000 → 1.5M, etc. */
+@Composable
+fun FormatCompact(value: Long): String {
+    return when {
+        value >= 1_000_000_000_000 -> "%.2fT".format(value / 1_000_000_000_000.0)
+        value >= 1_000_000_000 -> "%.2fB".format(value / 1_000_000_000.0)
+        value >= 1_000_000 -> "%.2fM".format(value / 1_000_000.0)
+        value >= 1_000 -> "%.2fK".format(value / 1_000.0)
+        else -> value.toString()
     }
 }

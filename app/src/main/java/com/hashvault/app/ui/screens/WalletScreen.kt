@@ -1,4 +1,8 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.hashvault.app.ui.screens
+
+import com.hashvault.app.LocalStrings
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,8 +17,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.hashvault.app.ExportUtil
 import com.hashvault.app.HashVaultApp
 import com.hashvault.app.ui.components.*
+import kotlinx.coroutines.launch
+import android.widget.Toast
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,6 +30,7 @@ fun WalletScreen(
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val app = context.applicationContext as HashVaultApp
+    val scope = rememberCoroutineScope()
     val viewModel: WalletViewModel = viewModel(
         factory = WalletViewModelFactory(app)
     )
@@ -55,7 +63,7 @@ fun WalletScreen(
                     OutlinedTextField(
                         value = addressInput,
                         onValueChange = { addressInput = it },
-                        label = { Text("Monero Wallet Address") },
+                        label = { Text(LocalStrings.current.moneroAddress) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii)
@@ -86,7 +94,7 @@ fun WalletScreen(
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
                             Text(
-                                text = "Wallet",
+                                text = LocalStrings.current.walletLabel,
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -105,12 +113,16 @@ fun WalletScreen(
                 item { ErrorCard(message = error) }
             }
 
-            // Balance
-            state.stats?.collective?.let { col ->
+            // Balance + Daily Earnings
+            state.stats?.let { ws ->
+                val col = ws.collective
+                val rev = ws.revenue
                 item {
-                    val confirmed = (col.revenue?.confirmedBalance ?: 0L) / 1_000_000_000_000.0
-                    val pending = (col.revenue?.unconfirmedBalance?.collective?.total ?: 0L) / 1_000_000_000_000.0
-                    val totalPaid = (col.revenue?.totalPaid ?: 0L) / 1_000_000_000_000.0
+                    val confirmed = (rev?.confirmedBalance ?: 0L) / 1_000_000_000_000.0
+                    val pending = (rev?.unconfirmedBalance?.collective?.total ?: 0L) / 1_000_000_000_000.0
+                    val totalPaid = (rev?.totalPaid ?: 0L) / 1_000_000_000_000.0
+                    val dailyCredited = (rev?.dailyCredited ?: 0L) / 1_000_000_000_000.0
+                    val dailyPaid = (rev?.dailyPaid ?: 0L) / 1_000_000_000_000.0
 
                     BalanceCard(balanceXmr = confirmed, balanceUsd = null)
 
@@ -127,6 +139,23 @@ fun WalletScreen(
                         StatCard(
                             title = "Total Paid",
                             value = "%.4f".format(totalPaid),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        StatCard(
+                            title = "Today Credited",
+                            value = if (dailyCredited > 0) "%.6f XMR".format(dailyCredited) else "—",
+                            modifier = Modifier.weight(1f)
+                        )
+                        StatCard(
+                            title = "Today Paid",
+                            value = if (dailyPaid > 0) "%.6f XMR".format(dailyPaid) else "—",
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -158,7 +187,7 @@ fun WalletScreen(
             state.stats?.collective?.workers?.let { workers ->
                 if (workers.isNotEmpty()) {
                     item {
-                        SectionHeader("Workers")
+                        SectionHeader(LocalStrings.current.workers)
                     }
                     items(workers) { worker ->
                         Card(
@@ -192,7 +221,7 @@ fun WalletScreen(
 
             // Blocks
             if (state.blocks.isNotEmpty()) {
-                item { SectionHeader("Recent Blocks") }
+                item { SectionHeader(LocalStrings.current.recentBlocks) }
                 items(state.blocks.take(5)) { block ->
                     BlockItem(block)
                 }
@@ -200,7 +229,7 @@ fun WalletScreen(
 
             // Payments
             if (state.payments.isNotEmpty()) {
-                item { SectionHeader("Recent Payments") }
+                item { SectionHeader(LocalStrings.current.recentPayments) }
                 items(state.payments.take(5)) { payment ->
                     PaymentItem(payment)
                 }
@@ -208,31 +237,7 @@ fun WalletScreen(
 
             // Rewards
             if (state.rewards.isNotEmpty()) {
-                item { SectionHeader("Rewards") }
-            // Shares
-            if (state.shares.isNotEmpty()) {
-                item { SectionHeader("Top Shares") }
-                items(state.shares) { share ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(share.blockHeight?.let { "#$it" } ?: "-", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                                Text("Diff: ${share.shareDifficulty}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text("%.1f%%".format(share.targetRatio ?: 0.0), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                            }
-                        }
-                    }
-                }
-            }
+                item { SectionHeader(LocalStrings.current.rewards) }
                 items(state.rewards.take(5)) { reward ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -241,15 +246,13 @@ fun WalletScreen(
                         )
                     ) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
+                            modifier = Modifier.fillMaxWidth().padding(12.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "Reward",
+                                    text = "⛏️ Reward",
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.SemiBold
                                 )
@@ -270,6 +273,66 @@ fun WalletScreen(
                                 )
                                 TimestampText(timestampMs = reward.ts)
                             }
+                        }
+                    }
+                }
+            }
+
+            // Shares (after rewards)
+            if (state.shares.isNotEmpty()) {
+                item { SectionHeader(LocalStrings.current.topShares) }
+                items(state.shares) { share ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(share.height?.let { "#$it" } ?: "-", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    share.worker?.let { worker ->
+                                        Text("🖥️ $worker", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                                    }
+                                }
+                                Text("Diff: ${FormatCompact(share.shareDifficulty)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text("%.1f%%".format(share.targetRatio), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Export button
+            item {
+                val ctx = context
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("📤 Export Data", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("Save wallet & pool summary as JSON", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = {
+                                scope.launch {
+                                    ExportUtil.exportToJson(ctx).onSuccess { fn ->
+                                        Toast.makeText(ctx, "Exported: Downloads/$fn", Toast.LENGTH_LONG).show()
+                                    }.onFailure { e ->
+                                        Toast.makeText(ctx, "Export failed: ${e.message}", Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                            }
+                        ) {
+                            Text("📥 Export JSON")
                         }
                     }
                 }
@@ -302,7 +365,7 @@ private fun BlockItem(block: com.hashvault.app.data.model.Block) {
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = "${block.poolType.uppercase()} · %.1f%% effort".format(block.effort),
+                    text = "${(block.poolType ?: "").uppercase()} · %.1f%% effort".format(block.effort),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
